@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +47,6 @@ SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,9 +70,10 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint16_t len_gps = 82;
-	uint8_t buff_gps[len_gps];
-	uint16_t i=0;
+	char dato=0;
+	char buffer[82];
+//	char str[15];
+	uint32_t i = 0;
   /* USER CODE END 1 */
   
 
@@ -98,44 +98,85 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  ssd1306_Init();
-  ssd1306_Fill(Black);
-  ssd1306_SetCursor(0, 0);
-  ssd1306_WriteString("Hola Lulu", Font_11x18, White);
-  ssd1306_SetCursor(0, 20);
-  ssd1306_WriteString("OLED 10/10", Font_11x18, White);
-  ssd1306_SetCursor(0, 40);
-  ssd1306_WriteString("Hola Pepe", Font_11x18, White);
-  ssd1306_UpdateScreen();
+	ssd1306_Init();
+	ssd1306_Fill(Black);
+	ssd1306_SetCursor(0, 0);
+	ssd1306_WriteString("Hola Lulu", Font_11x18, White);
+	ssd1306_SetCursor(0, 20);
+	ssd1306_WriteString("Hola Pepe", Font_11x18, White);
+	ssd1306_SetCursor(0, 40);
+	ssd1306_WriteString("OLED -2/10", Font_11x18, White);
+	ssd1306_UpdateScreen();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+
+	while (1)
+	{
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  	  HAL_GPIO_TogglePin(GPIOA, O_Blinky_Pin);
-  	  HAL_Delay(1000);
+		HAL_GPIO_TogglePin(GPIOA, O_Blinky_Pin);
+		//		HAL_Delay(1000);
 
-  	  HAL_UART_Receive(&huart1, buff_gps, len_gps, 500);
+		//		HAL_UART_Receive(&huart1, ((uint8_t*)buffer),82, 20);
 
-  	  //buff_gps[0] = 'A';
-  	  //buff_gps[3] = (uint8_t)'\n';
+		//		if(dato=='$')
+		//		{
+		//			i = 0;
+		//			while(dato!='*')
+		//			{
+		//				if(i==82)
+		//					break;	//Avisar
+		//				HAL_UART_Receive(&huart1, ((uint8_t*)&dato),1, 20);
+		//				buffer[i] = dato;
+		//				i++;
+		//			}
+		//		}
+		for(i=0 ; i<33 ; i++)
+			buffer[i] = 'x';
 
-  	  ssd1306_Fill(Black);
-  	  ssd1306_SetCursor(0, 0);
-  	  ssd1306_WriteString("GPS: Test1", Font_11x18, White);
-  	  ssd1306_SetCursor(0, 20);
-  	  ssd1306_WriteString("Juan gediento", Font_11x18, White);
-  	  ssd1306_SetCursor(0, 40);
-  	  ssd1306_WriteChar(buff_gps[i], Font_11x18, White);
-  	  ssd1306_UpdateScreen();
-  	  i++;
-  	  if(i == 82)
-  		  i = 0;
-  }
+		__HAL_UART_CLEAR_IT(&huart1, UART_CLEAR_NEF|UART_CLEAR_OREF);
+		if( HAL_UART_Receive(&huart1, ((uint8_t*)&dato),1, 10) == HAL_TIMEOUT)
+		{
+//			ssd1306_Fill(Black);
+//			ssd1306_SetCursor(0, 0);
+//			ssd1306_WriteString("GPS: TimeO", Font_11x18, White);
+//			ssd1306_SetCursor(0, 20);
+//			ssd1306_WriteString("TimeO_FLAGS", Font_11x18, White);
+//			ssd1306_WriteString(str, Font_11x18, White);
+//			ssd1306_UpdateScreen();
+		}
+		else
+		{
+
+			if( dato == '$')
+			{
+				HAL_UART_Receive(&huart1, ((uint8_t*)buffer),33, 100);
+				ssd1306_Fill(Black);
+				ssd1306_SetCursor(0, 0);
+				for(i=0 ; i<11 ; i++)
+					ssd1306_WriteChar(buffer[i], Font_11x18, White);
+				ssd1306_SetCursor(0, 20);
+				for(i=11 ; i<22 ; i++)
+					ssd1306_WriteChar(buffer[i], Font_11x18, White);
+				ssd1306_SetCursor(0, 40);
+				for(i=22 ; i<33 ; i++)
+					ssd1306_WriteChar(buffer[i], Font_11x18, White);
+				ssd1306_UpdateScreen();
+				HAL_Delay(1000);
+
+			}
+			else
+			{
+//				ssd1306_Fill(Black);
+//				ssd1306_SetCursor(0, 0);
+//				ssd1306_WriteString("GPS: Bad", Font_11x18, White);
+//				ssd1306_UpdateScreen();
+			}
+		}
+	}
   /* USER CODE END 3 */
 }
 
@@ -239,10 +280,10 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.Mode = UART_MODE_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_ENABLE;
   huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
@@ -300,8 +341,8 @@ static void MX_GPIO_Init(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-
+	/* User can add his own implementation to report the HAL error return state */
+	while(1);
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -316,7 +357,7 @@ void Error_Handler(void)
 void assert_failed(char *file, uint32_t line)
 { 
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
+	/* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
